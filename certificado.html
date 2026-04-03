@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Certificado</title>
+</head>
+<body>
+
+<h1>Certificado de Calibración</h1>
+
+<div id="contenido">
+    <p><strong>Cliente:</strong> <span id="cliente"></span></p>
+    <p><strong>Equipo:</strong> <span id="equipo"></span></p>
+    <p><strong>Resultado:</strong> <span id="resultado"></span></p>
+    <a id="pdfLink" href="#" target="_blank">Ver PDF</a>
+</div>
+
+<script>
+const params = new URLSearchParams(window.location.search);
+const codigo = params.get("codigo");
+
+console.log("Código recibido:", codigo);
+
+fetch(`http://localhost:3000/certificado?codigo=${codigo}`)
+    .then(res => res.json())
+    .then(data => {
+        console.log("Respuesta:", data);
+
+        if (data.error) {
+            document.getElementById("contenido").innerHTML = "<h2>Certificado no encontrado</h2>";
+            return;
+        }
+
+        document.getElementById("cliente").textContent = data.cliente;
+        document.getElementById("equipo").textContent = data.equipo;
+        document.getElementById("resultado").textContent = data.resultado;
+
+        document.getElementById("pdfLink").href = data.pdf;
+    })
+    .catch(error => {
+        console.error("Error:", error);
+        document.getElementById("contenido").innerHTML = "<h2>Error al conectar con el servidor</h2>";
+    });
+</script>
+
+</body>
+</html>
+
+<script>
+const params = new URLSearchParams(window.location.search);
+const codigo = params.get("codigo");
+
+fetch(`http://localhost:3000/certificado?codigo=${codigo}`)
+    .then(res => res.json())
+    .then(data => {
+        if (data.error) {
+            document.body.innerHTML = "<h2>Certificado no válido</h2>";
+            return;
+        }
+
+        // REDIRIGE AUTOMÁTICAMENTE AL PDF
+        window.location.href = data.pdf;
+    });
+</script>
