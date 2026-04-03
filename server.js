@@ -33,3 +33,9 @@ const path = require("path");
 
 // servir archivos estáticos (HTML y PDFs)
 app.use(express.static(path.join(__dirname)));
+
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+    console.log("Servidor corriendo en puerto " + PORT);
+});
