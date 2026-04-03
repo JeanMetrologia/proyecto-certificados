@@ -1,9 +1,13 @@
 const express = require("express");
 const sqlite3 = require("sqlite3").verbose();
 const cors = require("cors");
+const path = require("path");
 
 const app = express();
 app.use(cors());
+
+// 🔥 SERVIR HTML Y PDFs
+app.use(express.static(path.join(__dirname)));
 
 // conectar a la base de datos
 const db = new sqlite3.Database("certificados.db");
@@ -25,15 +29,7 @@ app.get("/certificado", (req, res) => {
     });
 });
 
-app.listen(3000, () => {
-    console.log("Servidor corriendo en http://localhost:3000");
-});
-
-const path = require("path");
-
-// servir archivos estáticos (HTML y PDFs)
-app.use(express.static(path.join(__dirname)));
-
+// 🔥 SOLO UN listen (correcto para Render)
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
