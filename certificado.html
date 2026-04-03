@@ -1,117 +1,137 @@
 <!DOCTYPE html>
-<html lang="es">
+<html>
+
 <head>
-<meta charset="UTF-8">
-<title>Verificación de Certificado</title>
+
+<meta charset="utf-8">
+
+<title>Verificador de Certificados</title>
 
 <style>
+
 body{
-    font-family: Arial;
-    background-color: #f4f6f8;
-    text-align: center;
+font-family:Arial;
+text-align:center;
 }
 
-.contenedor{
-    background: white;
-    width: 500px;
-    margin: 50px auto;
-    padding: 30px;
-    border-radius: 10px;
-    box-shadow: 0px 0px 10px rgba(0,0,0,0.2);
+.cuadro{
+border:2px solid black;
+width:450px;
+margin:auto;
+padding:20px;
+border-radius:10px;
 }
 
-.valido{
-    color: green;
-    font-size: 24px;
-    font-weight: bold;
-}
-
-.invalido{
-    color: red;
-    font-size: 24px;
-    font-weight: bold;
-}
-
-.dato{
-    margin: 10px 0;
-    font-size: 18px;
+input{
+padding:8px;
+width:250px;
 }
 
 button{
-    margin-top: 20px;
-    padding: 10px 20px;
-    font-size: 16px;
-    background-color: blue;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
+padding:10px 20px;
+font-size:16px;
 }
 
-button:hover{
-    background-color: darkblue;
-}
 </style>
 
 </head>
 
 <body>
 
-<div class="contenedor">
+<img src="logo.jpg" width="529">
 
-<h1>Verificación de Certificado</h1>
+<h1 style="color:blue">Verifica tu certificado</h1>
 
-<p id="estado"></p>
+<div class="cuadro">
 
-<div id="info" style="display:none;">
-    <p class="dato"><strong>Cliente:</strong> <span id="cliente"></span></p>
-    <p class="dato"><strong>Equipo:</strong> <span id="equipo"></span></p>
-    <p class="dato"><strong>Resultado:</strong> <span id="resultado"></span></p>
+<p>Ingrese el Nombre de la Empresa</p>
 
-    <button id="verPdf">Ver Certificado PDF</button>
-</div>
+<input type="text" id="Empresa">
+
+<p>Ingrese el número de certificado</p>
+
+<input type="text" id="Codigo">
+
+<br><br>
+
+<button onclick="buscarCertificado()">Buscar</button>
 
 </div>
 
 <script>
 
-async function cargarCertificado(){
+// 🌐 URL de tu servidor en Render
+const API_URL = "https://proyecto-certificados-k1s8.onrender.com";
 
-    const params = new URLSearchParams(window.location.search);
-    const codigo = params.get("codigo");
+// 🔎 BUSCAR MANUAL
+async function buscarCertificado(){
 
-    if(!codigo){
-        document.getElementById("estado").innerHTML = "⚠️ Falta código";
-        return;
-    }
+let empresa = document.getElementById("Empresa").value.trim();
+let codigo = document.getElementById("Codigo").value.trim();
 
-    const res = await fetch("/certificado?codigo=" + codigo);
-    const data = await res.json();
-
-    if(data.error){
-        document.getElementById("estado").className = "invalido";
-        document.getElementById("estado").innerHTML = "❌ Certificado NO válido";
-        return;
-    }
-
-    // Mostrar válido
-    document.getElementById("estado").className = "valido";
-    document.getElementById("estado").innerHTML = "✅ Certificado válido";
-
-    document.getElementById("info").style.display = "block";
-
-    document.getElementById("cliente").innerText = data.cliente;
-    document.getElementById("equipo").innerText = data.equipo;
-    document.getElementById("resultado").innerText = data.resultado;
-
-    document.getElementById("verPdf").onclick = () => {
-        window.open("/" + data.pdf, "_blank");
-    };
+if(!codigo){
+alert("Ingrese el código");
+return;
 }
 
-cargarCertificado();
+try {
+
+let respuesta = await fetch(`${API_URL}/certificado?codigo=${codigo}`);
+let data = await respuesta.json();
+
+if(data.error){
+alert("Certificado no encontrado");
+return;
+}
+
+// validar empresa
+if(empresa.toLowerCase() !== data.cliente.toLowerCase()){
+alert("La empresa no coincide con el certificado");
+return;
+}
+
+// 🔥 ABRIR PDF
+window.location.href = `${API_URL}/${data.pdf}`;
+
+} catch(error){
+alert("Error al conectar con el servidor");
+}
+
+}
+
+
+// 📱 AUTOMÁTICO SI VIENE DEL QR
+window.onload = async function(){
+
+const params = new URLSearchParams(window.location.search);
+const codigo = params.get("codigo");
+
+// SI VIENE DEL QR
+if(codigo){
+
+try {
+
+let respuesta = await fetch(`${API_URL}/certificado?codigo=${codigo}`);
+let data = await respuesta.json();
+
+if(data.error){
+document.body.innerHTML += "<h2>Certificado no válido</h2>";
+return;
+}
+
+// 🔥 REDIRECCIÓN DIRECTA AL PDF
+window.location.href = `${API_URL}/${data.pdf}`;
+
+} catch(error){
+document.body.innerHTML += "<h2>Error al conectar</h2>";
+}
+
+}
+
+}
 
 </script>
 
 </body>
+
 </html>
