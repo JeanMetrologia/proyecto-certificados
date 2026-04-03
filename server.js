@@ -6,30 +6,27 @@ const path = require("path");
 const app = express();
 app.use(cors());
 
-// 🔥 SERVIR HTML Y PDFs
 app.use(express.static(path.join(__dirname)));
 
-// conectar a la base de datos
+// 👉 ESTA PARTE ES NUEVA
+app.get("/", (req, res) => {
+    res.sendFile(path.join(__dirname, "certificado.html"));
+});
+
+// DB
 const db = new sqlite3.Database("certificados.db");
 
-// endpoint para buscar por codigo
 app.get("/certificado", (req, res) => {
     const codigo = req.query.codigo;
 
     db.get("SELECT * FROM certificados WHERE codigo = ?", [codigo], (err, row) => {
-        if (err) {
-            return res.status(500).json(err);
-        }
-
-        if (!row) {
-            return res.json({ error: "Certificado no encontrado" });
-        }
+        if (err) return res.status(500).json(err);
+        if (!row) return res.json({ error: "Certificado no encontrado" });
 
         res.json(row);
     });
 });
 
-// 🔥 SOLO UN listen (correcto para Render)
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
